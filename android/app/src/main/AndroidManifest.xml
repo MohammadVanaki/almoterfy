@@ -1,6 +1,8 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.dijlah.bnnews">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.dijlah.moterfy">
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
-        android:label="بدر نيوز"
+        android:label="المطيرفي"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -37,5 +39,4 @@
             <data android:scheme="mailto" />
         </intent>
     </queries>
-    <uses-permission android:name="android.permission.INTERNET" />
 </manifest>

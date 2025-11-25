@@ -1,54 +1,34 @@
 import 'dart:io';
-import 'package:badrnews/api/firebase_api.dart';
-import 'package:badrnews/constants/constants.dart';
-import 'package:badrnews/db/badr_database.dart';
-import 'package:badrnews/screens/splash_page.dart';
+
+import 'package:almoterfy/constants/constants.dart';
+import 'package:almoterfy/db/badr_database.dart';
+import 'package:almoterfy/notif/firebase_notification_service.dart';
+import 'package:almoterfy/screens/splash_page.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:google_api_availability/google_api_availability.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  try {
-    final result = await InternetAddress.lookup('example.com');
-    if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-      debugPrint('connected');
-      await Firebase.initializeApp();
-      await FirebaseMessaging.instance.subscribeToTopic("general");
-      await FirebaseApi().inintNotifications();
-      Constants.connectToInternet = true;
-    }
-  } on SocketException catch (_) {
-    debugPrint('not connected');
-    Constants.connectToInternet = false;
+  if (Platform.isAndroid) {
+    await checkGooglePlayServices().timeout(const Duration(seconds: 10));
   }
-
   runApp(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme:
-            ColorScheme.fromSwatch().copyWith(secondary: Constants.themeColor),
-      ),
-      home: const BadrNews(),
-    ),
+    MaterialApp(debugShowCheckedModeBanner: false, home: const AlmoterfyNews()),
   );
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    debugPrint('onMessage clicked!');
-    debugPrint(message.notification?.body);
-  });
 }
 
-class BadrNews extends StatefulWidget {
-  const BadrNews({super.key});
+class AlmoterfyNews extends StatefulWidget {
+  const AlmoterfyNews({super.key});
 
   @override
-  State<BadrNews> createState() => _BadrNewsState();
+  State<AlmoterfyNews> createState() => _AlmoterfyNewsState();
 }
 
-class _BadrNewsState extends State<BadrNews> {
+class _AlmoterfyNewsState extends State<AlmoterfyNews> {
   InitializeDB initializeDB = InitializeDB();
 
   _getContent() async {
@@ -77,5 +57,30 @@ class _BadrNewsState extends State<BadrNews> {
   @override
   Widget build(BuildContext context) {
     return const SplashPage();
+  }
+}
+
+Future<void> checkGooglePlayServices() async {
+  GooglePlayServicesAvailability availability = await GoogleApiAvailability
+      .instance
+      .checkGooglePlayServicesAvailability();
+
+  if (availability != GooglePlayServicesAvailability.success) {
+    debugPrint('Google Play Services not available: $availability');
+
+    debugPrint(
+        'Google Play Services is not available: ${availability.toString()}');
+  } else {
+    debugPrint('Google Play Services is available.');
+
+    try {
+      await Firebase.initializeApp().timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('Firebase init failed or timed out: $e');
+    }
+
+    FirebaseMessaging.onBackgroundMessage(handleFirebaseBackgroundMessage);
+
+    await FirebaseNotificationService().initializeNotifications();
   }
 }

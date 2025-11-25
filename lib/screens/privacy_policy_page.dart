@@ -1,5 +1,6 @@
-import 'package:badrnews/constants/constants.dart';
+import 'package:almoterfy/constants/constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class PrivacyPolicyPage extends StatefulWidget {
@@ -38,16 +39,16 @@ class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            IconButton(
-              onPressed: () {
+            GestureDetector(
+              onTap: () {
+                print("AppBar back pressed");
                 Navigator.pop(context);
               },
-              icon: const Icon(
-                Icons.arrow_back,
-              ),
+              child: SvgPicture.asset('./Assets/svgs/angle-left.svg',
+                  color: Colors.white, width: 24, height: 24),
             ),
             Image.asset(
-              './Assets/images/logo-bn.png',
+              './Assets/images/logo-almoterfy.png',
               fit: BoxFit.cover,
               width: 100,
             ),

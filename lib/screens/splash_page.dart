@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:badrnews/constants/constants.dart';
-import 'package:badrnews/screens/home_page.dart';
+import 'package:almoterfy/constants/constants.dart';
+import 'package:almoterfy/screens/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:page_transition/page_transition.dart';
 
@@ -39,18 +39,17 @@ class _SplashPageState extends State<SplashPage> {
       child: Stack(
         alignment: Alignment.center,
         children: <Widget>[
-          Center(
-            child: Image.asset(
-              './Assets/images/logo-bn.png',
-              fit: BoxFit.cover,
-              width: 250,
-            ),
+          Image.asset(
+            './Assets/images/splash.jpg',
+            fit: BoxFit.fill,
+            width: size.width,
+            height: size.height,
           ),
-          const Positioned(
-            bottom: 200,
+          Positioned(
+            bottom: 140,
             child: CircularProgressIndicator(
               strokeWidth: 2.5,
-              color: Colors.white,
+              color: Constants.iconsColor,
             ),
           ),
         ],

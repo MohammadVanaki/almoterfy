@@ -1,4 +1,4 @@
-package com.example.badrnews
+package com.dijlah.moterfy
 
 import io.flutter.embedding.android.FlutterActivity
 

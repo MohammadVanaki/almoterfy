@@ -1,17 +1,20 @@
 import 'dart:async';
 
-import 'package:badrnews/Components/news_card.dart';
-import 'package:badrnews/Components/skeleton.dart';
-import 'package:badrnews/api/news_api.dart';
-import 'package:badrnews/api/news_model.dart';
-import 'package:badrnews/constants/constants.dart';
-import 'package:badrnews/screens/news_content.dart';
-import 'package:badrnews/screens/search_page.dart';
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:almoterfy/Components/news_card.dart';
+import 'package:almoterfy/Components/skeleton.dart';
+import 'package:almoterfy/api/news_api.dart';
+import 'package:almoterfy/api/news_model.dart';
+import 'package:almoterfy/constants/constants.dart';
+import 'package:almoterfy/screens/news_content.dart';
+import 'package:almoterfy/screens/search_page.dart';
+
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:carousel_slider/carousel_controller.dart';
+import 'package:carousel_slider/carousel_controller.dart' as cs;
 
 class NewsListPag extends StatefulWidget {
   const NewsListPag({super.key});
@@ -25,6 +28,7 @@ class _NewsListPagState extends State<NewsListPag> {
   int selectedCategory = 0;
   int gid = 0;
   Future<PostNews>? listNews;
+  Future<CategoryResponse>? listCategories;
   final CarouselController _carouselController = CarouselController();
 
   final GlobalKey<LiquidPullToRefreshState> _refreshIndicatorKey =
@@ -50,6 +54,7 @@ class _NewsListPagState extends State<NewsListPag> {
   @override
   void initState() {
     listNews = fetchNews(gid);
+    listCategories = fetchCategories();
     super.initState();
     connected();
   }
@@ -75,45 +80,46 @@ class _NewsListPagState extends State<NewsListPag> {
                 child: SingleChildScrollView(
                   child: Column(
                     children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 15,
-                          horizontal: 20,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            Text(
-                              "أحدث الأخبار",
-                              style: TextStyle(
-                                fontFamily: Constants.boldFontFamily,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 18,
-                                color: Constants.themeColor,
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  PageTransition(
-                                    child: const SearchPage(),
-                                    type: PageTransitionType.bottomToTop,
-                                  ),
-                                );
-                              },
-                              child: RotatedBox(
-                                quarterTurns: 1,
-                                child: Icon(
-                                  Icons.search,
-                                  color: Constants.themeColor,
-                                  size: 30,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
+                      // Padding(
+                      //   padding: const EdgeInsets.symmetric(
+                      //     vertical: 15,
+                      //     horizontal: 20,
+                      //   ),
+                      //   child: Row(
+                      //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //     children: <Widget>[
+                      //       Text(
+                      //         "أحدث الأخبار",
+                      //         style: TextStyle(
+                      //           fontFamily: Constants.boldFontFamily,
+                      //           fontWeight: FontWeight.w900,
+                      //           fontSize: 18,
+                      //           color: Constants.themeColor,
+                      //         ),
+                      //       ),
+                      //       InkWell(
+                      //         onTap: () {
+                      //           Navigator.push(
+                      //             context,
+                      //             PageTransition(
+                      //               child: const SearchPage(),
+                      //               type: PageTransitionType.bottomToTop,
+                      //             ),
+                      //           );
+                      //         },
+                      //         child: RotatedBox(
+                      //           quarterTurns: 1,
+                      //           child: Icon(
+                      //             Icons.search,
+                      //             color: Constants.themeColor,
+                      //             size: 30,
+                      //           ),
+                      //         ),
+                      //       )
+                      //     ],
+                      //   ),
+                      // ),
+                      SizedBox(height: 10),
                       // Slider News
                       Column(
                         children: <Widget>[
@@ -129,7 +135,7 @@ class _NewsListPagState extends State<NewsListPag> {
                                 });
                               },
                             ),
-                            items: [0, 1, 2, 3].map((i) {
+                            items: [0, 1, 2].map((i) {
                               return FutureBuilder(
                                 future: listNews,
                                 builder: (BuildContext context,
@@ -137,16 +143,22 @@ class _NewsListPagState extends State<NewsListPag> {
                                   if (snapshot.hasData &&
                                       Constants.changeCategory == true &&
                                       Constants.refreshNews == false) {
+                                    // Use sliders.other list
+                                    final item =
+                                        snapshot.data!.sliders.other[i];
+
                                     return SliderItem(
-                                      id: snapshot.data!.sliders[i].id,
+                                      id: item.id, // English comments
                                       image: Constants.sliderImageURLPrefix +
-                                          snapshot.data!.sliders[i].img,
-                                      title: snapshot.data!.sliders[i].title,
+                                          item.img,
+                                      title: item.title,
                                     );
                                   } else if (snapshot.hasError) {
                                     return Center(
-                                        child: Text("${snapshot.error}"));
+                                      child: Text("${snapshot.error}"),
+                                    );
                                   }
+
                                   return const SkeltonSlider();
                                 },
                               );
@@ -159,8 +171,11 @@ class _NewsListPagState extends State<NewsListPag> {
                               children:
                                   sampleImages.asMap().entries.map((entry) {
                                 return GestureDetector(
-                                  onTap: () => _carouselController
-                                      .animateToPage(entry.key),
+                                  onTap: () => _carouselController.animateTo(
+                                    double.parse(entry.key.toString()),
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeInOut,
+                                  ),
                                   child: Container(
                                     width: 8.0,
                                     height: 8.0,
@@ -185,23 +200,56 @@ class _NewsListPagState extends State<NewsListPag> {
                         height: 30,
                         width: size.width,
                         child: FutureBuilder(
-                          future: listNews,
+                          future:
+                              listCategories, // *** English comment: category future ***
                           builder: (BuildContext context,
-                              AsyncSnapshot<PostNews> snapshot) {
+                              AsyncSnapshot<CategoryResponse> snapshot) {
                             if (snapshot.hasData &&
                                 Constants.refreshNews == false) {
+                              final postGroups = snapshot.data!.postGroups;
+
+                              // *** English comment: collect all main groups + all children ***
+                              List<CategoryItem> allCategories = [];
+
+                              for (var group in postGroups) {
+                                // If main group (parent_id = 0), add it
+                                if (group.parentId == 0) {
+                                  // Add the group itself as a CategoryItem
+                                  allCategories.add(
+                                    CategoryItem(
+                                      id: group.id,
+                                      lang: "ar",
+                                      parentId: group.parentId,
+                                      title: group.title,
+                                      logo: "",
+                                      source: "article",
+                                      slug: "",
+                                      firstPage: 1,
+                                      show2site: 1,
+                                      idShow: group.id,
+                                    ),
+                                  );
+
+                                  // Add children categories
+                                  allCategories.addAll(group.children);
+                                }
+                              }
+
                               return ListView.builder(
                                 physics: const BouncingScrollPhysics(),
-                                itemCount: snapshot.data!.categories.length,
+                                itemCount: allCategories.length,
                                 scrollDirection: Axis.horizontal,
                                 shrinkWrap: true,
                                 itemBuilder: (context, index) {
+                                  final item = allCategories[
+                                      index]; // *** category item ***
+
                                   return InkWell(
                                     onTap: () {
                                       setState(() {
                                         Constants.changeCategory = false;
                                         gid =
-                                            snapshot.data!.categories[index].id;
+                                            item.id; // *** use category id ***
 
                                         listNews = fetchNews(gid);
                                         selectedCategory = index;
@@ -222,8 +270,7 @@ class _NewsListPagState extends State<NewsListPag> {
                                           ),
                                         ),
                                         child: Text(
-                                          snapshot
-                                              .data!.categories[index].title,
+                                          item.title, // *** category title ***
                                           textAlign: TextAlign.center,
                                           textDirection: TextDirection.rtl,
                                           style: TextStyle(
@@ -247,6 +294,7 @@ class _NewsListPagState extends State<NewsListPag> {
                             } else if (snapshot.hasError) {
                               return Center(child: Text("${snapshot.error}"));
                             }
+
                             return ListView.builder(
                               itemCount: 10,
                               shrinkWrap: true,
@@ -298,15 +346,15 @@ class FutureBuilderNews extends StatelessWidget {
             Constants.refreshNews == false) {
           return ListView.builder(
             physics: const BouncingScrollPhysics(),
-            itemCount: snapshot.data!.news.length,
+            itemCount: snapshot.data!.posts.length,
             shrinkWrap: true,
             itemBuilder: (context, index) {
               return NewsCard(
-                dataTime: snapshot.data!.news[index].newsDate.toString(),
-                id: snapshot.data!.news[index].id,
+                dataTime: snapshot.data!.posts[index].dateTime.toString(),
+                id: snapshot.data!.posts[index].id,
                 image:
-                    Constants.imageURLPrefix + snapshot.data!.news[index].img,
-                title: snapshot.data!.news[index].title,
+                    Constants.imageURLPrefix + snapshot.data!.posts[index].img,
+                title: snapshot.data!.posts[index].title,
                 sw: '',
               );
             },
@@ -377,7 +425,9 @@ class SliderItem extends StatelessWidget {
               child: Image.network(
                 image,
                 height: 220,
-                fit: BoxFit.fill,
+                fit: BoxFit.cover,
+
+                // Frame builder (for decoration)
                 frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
                   return Container(
                     height: 220,
@@ -386,6 +436,25 @@ class SliderItem extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: child,
+                  );
+                },
+
+                // Show default image when URL fails
+                errorBuilder: (context, error, stackTrace) {
+                  // This widget is shown when the image URL is invalid or fails to load
+                  return Container(
+                    height: 220,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: Center(
+                      child: Image.asset(
+                        "./Assets/images/logo-bn.png", // Default image
+                        fit: BoxFit.contain,
+                        height: 130,
+                      ),
+                    ),
                   );
                 },
               ),

@@ -1,11 +1,13 @@
-import 'package:badrnews/constants/constants.dart';
-import 'package:badrnews/screens/about_page.dart';
-import 'package:badrnews/screens/privacy_policy_page.dart';
-import 'package:badrnews/screens/bookmark_page.dart';
-import 'package:badrnews/screens/news_list_page.dart';
-import 'package:badrnews/screens/setting_page.dart';
+import 'package:almoterfy/constants/constants.dart';
+import 'package:almoterfy/screens/about_page.dart';
+import 'package:almoterfy/screens/privacy_policy_page.dart';
+import 'package:almoterfy/screens/bookmark_page.dart';
+import 'package:almoterfy/screens/news_list_page.dart';
+import 'package:almoterfy/screens/search_page.dart';
+import 'package:almoterfy/screens/setting_page.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
@@ -20,24 +22,26 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _bottomNavIndex = 1;
-  static const List<IconData> iconList = [
-    Icons.settings,
-    Icons.home_filled,
-    Icons.bookmark_border,
+  static const List iconList = [
+    'settings',
+    'house',
+    'search',
   ];
   final List<String> drawerItemText = [
     "الرئيسية",
+    "المفضله",
     "من نحن",
     "اتصل بنا",
     "سياسة الخصوصية",
     "مشاركة التطبيق",
   ];
-  final List<IconData> drawerItemIcon = [
-    Icons.home,
-    Icons.assignment_late_outlined,
-    Icons.email_outlined,
-    Icons.privacy_tip_outlined,
-    Icons.share,
+  final List drawerItemIcon = [
+    'house',
+    'bookmark',
+    'info',
+    'envelope-open',
+    'confidential-discussion',
+    'share',
   ];
   List<Widget> pages() {
     return [
@@ -45,8 +49,8 @@ class _HomePageState extends State<HomePage> {
       SettingPage(),
       // ignore: prefer_const_constructors
       NewsListPag(),
-      // ignore: prefer_const_constructors
-      BookMarkPage(),
+      // BookMarkPage(),
+      SearchPage(),
     ];
   }
 
@@ -61,14 +65,19 @@ class _HomePageState extends State<HomePage> {
           title: Align(
             alignment: Alignment.centerLeft,
             child: Image.asset(
-              './Assets/images/logo-bn.png',
+              './Assets/images/logo-almoterfy.png',
               fit: BoxFit.cover,
               width: 100,
             ),
           ),
           leading: Builder(
             builder: (context) => IconButton(
-              icon: const Icon(Icons.menu_rounded),
+              icon: SvgPicture.asset(
+                './Assets/svgs/bars-staggered.svg',
+                colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                width: 24,
+                height: 24,
+              ),
               onPressed: () => Scaffold.of(context).openDrawer(),
             ),
           ),
@@ -84,16 +93,26 @@ class _HomePageState extends State<HomePage> {
             child: SizedBox(
               child: Column(
                 children: <Widget>[
-                  Image.asset(
-                    './Assets/images/hd-bn.jpg',
-                    fit: BoxFit.fill,
+                  Container(
+                    height: 200,
+                    padding: EdgeInsets.all(20),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Constants.themeColor,
+                    ),
+                    child: Center(
+                      child: Image.asset(
+                        './Assets/images/logo-almoterfy.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 20),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
                       children: List.generate(
-                        drawerItemText.length,
+                        drawerItemIcon.length,
                         (index) => DrawerItems(
                           title: drawerItemText[index],
                           icon: drawerItemIcon[index],
@@ -102,7 +121,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 280),
+                  const SizedBox(height: 200),
                   Text(
                     "الاصدار: 1.0",
                     style: TextStyle(
@@ -113,12 +132,18 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(height: 10),
                   Center(
                     child: GestureDetector(
+                      // English comment: Handle tap to launch the URL
+                      onTap: () => _launchUrl('https://dijlah.org'),
                       child: RichText(
                         text: TextSpan(
                           text: 'Powered by ',
-                          style: TextStyle(color: Colors.black87),
-                          children: const <TextSpan>[
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                          ),
+                          children: const [
                             TextSpan(
+                              // English comment: Highlight the brand name with color and bold style
                               text: 'DIjlah IT',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
@@ -128,10 +153,9 @@ class _HomePageState extends State<HomePage> {
                           ],
                         ),
                       ),
-                      onTap: () => _launchUrl('https://dijlah.org'),
                     ),
                   ),
-                  SizedBox(height: 20),
+                  // SizedBox(height: 40),
                 ],
               ),
             ),
@@ -140,10 +164,16 @@ class _HomePageState extends State<HomePage> {
         bottomNavigationBar: AnimatedBottomNavigationBar.builder(
           itemCount: iconList.length,
           tabBuilder: (int index, bool isActive) {
-            return Icon(
-              iconList[index],
-              size: 24,
-              color: isActive ? Constants.themeColor : Colors.grey,
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SvgPicture.asset(
+                isActive
+                    ? './Assets/fill/${iconList[index]}.svg'
+                    : './Assets/svgs/${iconList[index]}.svg',
+                colorFilter: ColorFilter.mode(
+                    isActive ? Constants.themeColor : Colors.black,
+                    BlendMode.srcIn),
+              ),
             );
           },
           activeIndex: _bottomNavIndex,
@@ -171,7 +201,7 @@ Future<void> _launchUrl(_url) async {
 
 class DrawerItems extends StatelessWidget {
   final String title;
-  final IconData icon;
+  final String icon;
   final int tag;
   const DrawerItems({
     super.key,
@@ -193,30 +223,40 @@ class DrawerItems extends StatelessWidget {
             Navigator.push(
               context,
               PageTransition(
-                child: const AboutPage(),
+                child: const BookMarkPage(),
                 type: PageTransitionType.bottomToTop,
               ),
             );
             break;
           case 2:
-            final Email email = Email(
-              recipients: ['info@bnnews.iq'],
-              isHTML: false,
+            Navigator.push(
+              context,
+              PageTransition(
+                child: const AboutPage(),
+                type: PageTransitionType.bottomToTop,
+              ),
             );
-            await FlutterEmailSender.send(email);
             break;
           case 3:
+            final Email email = Email(
+              recipients: ['info@almoterfy.com'],
+              isHTML: false,
+            );
+
+            await FlutterEmailSender.send(email);
+            break;
+          case 4:
             Navigator.push(
               context,
               PageTransition(
                 child: const PrivacyPolicyPage(
-                  url: 'https://bnnews.iq/privacy_bnnews.html',
+                  url: 'https://almoterfy.com/privacy_policy.html',
                 ),
                 type: PageTransitionType.bottomToTop,
               ),
             );
             break;
-          case 4:
+          case 5:
             final box = context.findRenderObject() as RenderBox?;
             Share.share(
               "أدعوك للاطلاع على تطبيق (${Constants.packageInfo.appName}) وذلك عبر الرابط التالي: \n https://play.google.com/store/apps/details?id=${Constants.packageInfo.packageName}",
@@ -230,15 +270,16 @@ class DrawerItems extends StatelessWidget {
         }
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 10).copyWith(bottom: 15),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           textDirection: TextDirection.rtl,
           children: <Widget>[
-            Icon(
-              icon,
-              color: Colors.black87,
-              size: 25,
+            SvgPicture.asset(
+              './Assets/svgs/${icon}.svg',
+              colorFilter: ColorFilter.mode(Colors.black, BlendMode.srcIn),
+              width: 24,
+              height: 24,
             ),
             const SizedBox(width: 10),
             Text(

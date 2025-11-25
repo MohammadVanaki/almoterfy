@@ -1,7 +1,7 @@
-import 'package:badrnews/Components/news_card.dart';
-import 'package:badrnews/api/news_api.dart';
-import 'package:badrnews/api/news_model.dart';
-import 'package:badrnews/constants/constants.dart';
+import 'package:almoterfy/Components/news_card.dart';
+import 'package:almoterfy/api/news_api.dart';
+import 'package:almoterfy/api/news_model.dart';
+import 'package:almoterfy/constants/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
@@ -25,28 +25,28 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Constants.themeColor,
-        automaticallyImplyLeading: false,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(
-                Icons.arrow_back,
-              ),
-            ),
-            Image.asset(
-              './Assets/images/logo-bn.png',
-              fit: BoxFit.cover,
-              width: 100,
-            ),
-          ],
-        ),
-      ),
+      // appBar: AppBar(
+      //   backgroundColor: Constants.themeColor,
+      //   automaticallyImplyLeading: false,
+      //   title: Row(
+      //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //     children: <Widget>[
+      //       IconButton(
+      //         onPressed: () {
+      //           Navigator.pop(context);
+      //         },
+      //         icon: const Icon(
+      //           Icons.arrow_back,
+      //         ),
+      //       ),
+      //       Image.asset(
+      //         './Assets/images/logo-almoterfy.png',
+      //         fit: BoxFit.cover,
+      //         width: 100,
+      //       ),
+      //     ],
+      //   ),
+      // ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -67,6 +67,8 @@ class _SearchPageState extends State<SearchPage> {
                       controller: controllerSearchNews,
                       cursorColor: Colors.black,
                       keyboardType: TextInputType.name,
+                      textInputAction:
+                          TextInputAction.done, // *** show Done button ***
                       validator: (String? value) {
                         if (value!.isEmpty) {
                           return "يرجى ادخال عبارة البحث!";
@@ -75,6 +77,39 @@ class _SearchPageState extends State<SearchPage> {
                         }
                         return null;
                       },
+                      onFieldSubmitted: (value) {
+                        // *** Called when user presses Done ***
+                        if (searchFormKey.currentState!.validate()) {
+                          if (checkBoxText == false && checkBoxTitle == false) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                duration: const Duration(seconds: 2),
+                                content: const Text(
+                                  'يرجى تحديد نطاق البحث',
+                                  textAlign: TextAlign.right,
+                                  style: TextStyle(
+                                    fontFamily: Constants.regularFontFamily,
+                                  ),
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                                backgroundColor: Constants.themeColor,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 50,
+                                  vertical: 30,
+                                ),
+                              ),
+                            );
+                          } else {
+                            setState(() {
+                              listNews = fetchSearchItem(
+                                controllerSearchNews.text,
+                                searchInText,
+                                searchInTitle,
+                              );
+                            });
+                          }
+                        }
+                      },
                       style: const TextStyle(
                         fontSize: 15,
                         fontFamily: Constants.regularFontFamily,
@@ -82,22 +117,14 @@ class _SearchPageState extends State<SearchPage> {
                       ),
                       decoration: InputDecoration(
                         border: OutlineInputBorder(
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(5.0),
-                          ),
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(5.0)),
                           borderSide: BorderSide(color: Constants.themeColor),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: const BorderRadius.all(
-                            Radius.circular(5.0),
-                          ),
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(5.0)),
                           borderSide: BorderSide(color: Constants.themeColor),
-                        ),
-                        focusedErrorBorder: const OutlineInputBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(5.0),
-                          ),
-                          borderSide: BorderSide(color: Colors.blue),
                         ),
                         suffixIcon: IconButton(
                           color: Constants.themeColor,
@@ -124,7 +151,6 @@ class _SearchPageState extends State<SearchPage> {
                                   ),
                                 );
                               } else {
-                                debugPrint(controllerSearchNews.text);
                                 setState(() {
                                   listNews = fetchSearchItem(
                                     controllerSearchNews.text,
@@ -137,29 +163,12 @@ class _SearchPageState extends State<SearchPage> {
                           },
                           icon: const RotatedBox(
                             quarterTurns: 1,
-                            child: Icon(
-                              Icons.search,
-                            ),
+                            child: Icon(Icons.search),
                           ),
                         ),
-                        // icon: Icon(
-                        //   Icons.search,
-                        // ),
-                        // iconColor: Constants.themeColor,
                         hintText: "البحث...",
-                        helperText: "",
                         hintStyle: const TextStyle(
                           fontSize: 15,
-                          fontFamily: Constants.regularFontFamily,
-                        ),
-                        labelStyle: TextStyle(
-                          fontSize: 15,
-                          fontFamily: Constants.regularFontFamily,
-                          color: Constants.iconsColor,
-                        ),
-                        helperStyle: TextStyle(
-                          fontSize: 10,
-                          color: Constants.iconsColor,
                           fontFamily: Constants.regularFontFamily,
                         ),
                       ),
@@ -279,7 +288,7 @@ class FutureBuilderNews extends StatelessWidget {
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
                     return NewsCard(
-                      dataTime: snapshot.data!.news[index].newsDate.toString(),
+                      dataTime: snapshot.data!.news[index].dateTime.toString(),
                       id: snapshot.data!.news[index].id,
                       image: Constants.imageURLPrefix +
                           snapshot.data!.news[index].img,
@@ -289,8 +298,7 @@ class FutureBuilderNews extends StatelessWidget {
                   },
                 )
               : Center(
-                  child:
-                      Lottie.asset('./Assets/animations/Animation-search.json'),
+                  child: Lottie.asset('./Assets/animations/Untitled_file.json'),
                 );
         } else if (snapshot.hasError) {
           debugPrint(snapshot.error.toString());
@@ -302,7 +310,7 @@ class FutureBuilderNews extends StatelessWidget {
           );
         }
         return Center(
-          child: Lottie.asset('./Assets/animations/Animation-search.json'),
+          child: Lottie.asset('./Assets/animations/Untitled_file.json'),
         );
       },
     );

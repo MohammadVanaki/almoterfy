@@ -1,8 +1,9 @@
-import 'package:badrnews/constants/constants.dart';
-import 'package:badrnews/screens/news_content.dart';
+import 'package:almoterfy/constants/constants.dart';
+import 'package:almoterfy/screens/news_content.dart';
 import 'package:flutter/material.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:substring_highlight/substring_highlight.dart';
+import 'package:intl/intl.dart' as intl;
 
 class NewsCard extends StatefulWidget {
   final String image;
@@ -26,9 +27,17 @@ class NewsCard extends StatefulWidget {
 class _NewsCardState extends State<NewsCard> {
   @override
   Widget build(BuildContext context) {
+// Convert String to int (timestamp seconds)
+    final int timestamp = int.parse(widget.dataTime);
+    final DateTime date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
+
+// Format using AM/PM
+    final String formattedDate =
+        intl.DateFormat('yyyy/MM/dd hh:mm a').format(date);
+
     return InkWell(
       onTap: () {
-        debugPrint(widget.dataTime.toString());
+        // debugPrint(widget.dataTime.toString());
 
         debugPrint(widget.id.toString());
         Navigator.push(
@@ -49,28 +58,47 @@ class _NewsCardState extends State<NewsCard> {
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.only(left: 10),
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: Image.network(
-                    widget.image,
-                    width: 90,
-                    height: 80,
-                    fit: BoxFit.fill,
-                    frameBuilder:
-                        (context, child, frame, wasSynchronouslyLoaded) {
-                      return Container(
-                        width: 90,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.grey,
-                          borderRadius: BorderRadius.circular(8.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: Image.network(
+                  widget.image,
+                  width: 90,
+                  height: 80,
+                  fit: BoxFit.fill,
+
+                  // Frame builder (for decoration)
+                  frameBuilder:
+                      (context, child, frame, wasSynchronouslyLoaded) {
+                    return Container(
+                      width: 90,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.grey,
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: child,
+                    );
+                  },
+
+                  // Show default image when URL fails
+                  errorBuilder: (context, error, stackTrace) {
+                    // This widget is shown when the image URL is invalid or fails to load
+                    return Container(
+                      width: 90,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      child: Center(
+                        child: Image.asset(
+                          "./Assets/images/logo-bn.png", // Default image
+                          fit: BoxFit.contain,
+                          height: 130,
                         ),
-                        child: child,
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -114,8 +142,8 @@ class _NewsCardState extends State<NewsCard> {
                   Align(
                     alignment: Alignment.bottomRight,
                     child: Text(
-                      widget.dataTime.toString(),
-                      textDirection: TextDirection.rtl,
+                      formattedDate.toString(),
+                      textDirection: TextDirection.ltr,
                       textAlign: TextAlign.justify,
                       style: const TextStyle(
                         fontSize: 10,

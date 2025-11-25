@@ -1,5 +1,5 @@
+import 'package:almoterfy/constants/constants.dart';
 import 'dart:io';
-import 'package:badrnews/constants/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sqflite/sqflite.dart';
@@ -67,7 +67,7 @@ void addToBookMark(
       'content': content,
     },
   );
-  // db?.rawInsert('INSERT INTO bookmark(id, title, data,image,content) VALUES($id,"$title","$data","$image","$content")');
+
 }
 
 void deleteBookmark(int id) {

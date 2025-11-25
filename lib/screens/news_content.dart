@@ -1,9 +1,9 @@
-import 'package:badrnews/Components/skeleton.dart';
-import 'package:badrnews/Components/webview_content.dart';
-import 'package:badrnews/api/news_api.dart';
-import 'package:badrnews/api/news_model.dart';
-import 'package:badrnews/constants/constants.dart';
-import 'package:badrnews/db/badr_database.dart';
+import 'package:almoterfy/Components/skeleton.dart';
+import 'package:almoterfy/Components/webview_content.dart';
+import 'package:almoterfy/api/news_api.dart';
+import 'package:almoterfy/api/news_model.dart';
+import 'package:almoterfy/constants/constants.dart';
+import 'package:almoterfy/db/badr_database.dart';
 import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -41,6 +41,13 @@ class _NewsContentState extends State<NewsContent> {
         builder:
             (BuildContext context, AsyncSnapshot<PostNewsContent> snapshot) {
           if (snapshot.hasData) {
+            final DateTime date = DateTime.fromMillisecondsSinceEpoch(
+                snapshot.data!.post[0].dateTime * 1000);
+
+            final String formattedDate =
+                "${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')} "
+                "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}"; // English comments
+
             return SizedBox(
               width: size.width,
               height: size.height,
@@ -49,9 +56,46 @@ class _NewsContentState extends State<NewsContent> {
                   Image.network(
                     Constants.imageURLPrefix + snapshot.data!.post[0].img,
                     height: 300,
-                    width: size.width,
                     fit: BoxFit.fill,
+
+                    // Frame builder (for decoration)
+                    frameBuilder:
+                        (context, child, frame, wasSynchronouslyLoaded) {
+                      return Container(
+                        height: 300,
+                        decoration: BoxDecoration(
+                          color: Colors.grey,
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: child,
+                      );
+                    },
+
+                    // Show default image when URL fails
+                    errorBuilder: (context, error, stackTrace) {
+                      // This widget is shown when the image URL is invalid or fails to load
+                      return Container(
+                        height: 300,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        child: Center(
+                          child: Image.asset(
+                            "./Assets/images/logo-bn.png", // Default image
+                            fit: BoxFit.contain,
+                            height: 130,
+                          ),
+                        ),
+                      );
+                    },
                   ),
+                  // Image.network(
+                  //   Constants.imageURLPrefix + snapshot.data!.post[0].img,
+                  //   height: 300,
+                  //   width: size.width,
+                  //   fit: BoxFit.fill,
+                  // ),
                   DraggableScrollableSheet(
                     initialChildSize: 0.7,
                     minChildSize: 0.7,
@@ -105,7 +149,6 @@ class _NewsContentState extends State<NewsContent> {
                                   children: <Widget>[
                                     InkWell(
                                       onTap: () {
-                                        debugPrint("qwewqeqw");
                                         // Share.share("text");
                                         final box = context.findRenderObject()
                                             as RenderBox?;
@@ -131,8 +174,7 @@ class _NewsContentState extends State<NewsContent> {
                                       ),
                                     ),
                                     Text(
-                                      snapshot.data!.post[0].newsDate
-                                          .toString(),
+                                      formattedDate.toString(),
                                       style: const TextStyle(
                                           fontSize: 12,
                                           fontFamily:
@@ -221,7 +263,7 @@ class _NewsContentState extends State<NewsContent> {
                                   addToBookMark(
                                     widget.newsId,
                                     snapshot.data!.post[0].title,
-                                    snapshot.data!.post[0].newsDate.toString(),
+                                    snapshot.data!.post[0].dateTime.toString(),
                                     Constants.sliderImageURLPrefix +
                                         snapshot.data!.post[0].img,
                                     snapshot.data!.post[0].content,
